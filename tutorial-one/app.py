@@ -23,7 +23,7 @@ def add_two_nums():
     "z":z
   }
   # Return the jsonify'd JSON
-  return jsonify(retJson)
+  return jsonify(retJson), 200
 
 @app.route('/bye')
 def bye():
