@@ -128,9 +128,19 @@ class Get(Resource):
             }
             return jsonify(retJson)
 
+        # Pull the sentence
         sentence = users.find({
             "Username": username
         })[0]["Sentence"]
+
+        # Subtract a token
+        users.update({
+            "Username":username
+            },{
+                "$set":{
+                    "Tokens":num_tokens - 1
+                }
+            })
 
         retJson = {
             "status":200,
