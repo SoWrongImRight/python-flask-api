@@ -109,7 +109,6 @@ class Get(Resource):
         # Read the database
         username = postedData['username']
         password = postedData['password']
-        remaining_tokens = postedData['tokens']
         # sentence = postedData['sentence']
 
         # Step 3 verify username and password match
@@ -125,8 +124,7 @@ class Get(Resource):
         num_tokens = countTokens(username)
         if num_tokens <= 0:
             retJson = {
-                "status":301,
-                "tokens":remaining_tokens
+                "status":301
             }
             return jsonify(retJson)
 
@@ -142,13 +140,12 @@ class Get(Resource):
         return jsonify(retJson)
 
 class Check(Resource):
-    def Post(self):
+    def post(self):
         postedData = request.get_json()
 
         # Read the database
         username = postedData['username']
         password = postedData['password']
-        remaining_tokens = postedData['tokens']
         # sentence = postedData['sentence']
 
         # Step 3 verify username and password match
