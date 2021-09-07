@@ -87,10 +87,15 @@ class Store(Resource):
             return jsonify(retJson)
 
         # Step 5 store the sentence and return 200
-        users.update({"Username":username},{"$set":{
-            "Sentence":sentence,
-            "Tokens":num_tokens - 1
-        }})
+        users.update({
+            "Username":username
+            },{
+                "$set":{
+                    "Sentence":sentence,
+                    "Tokens":num_tokens - 1
+                }
+            })
+
         retJson = {
             "status":200,
             "msg":"Sentence saved successfully"
@@ -104,6 +109,7 @@ class Get(Resource):
         # Read the database
         username = postedData['username']
         password = postedData['password']
+        remaining_tokens = postedData['tokens']
         # sentence = postedData['sentence']
 
         # Step 3 verify username and password match
@@ -119,7 +125,8 @@ class Get(Resource):
         num_tokens = countTokens(username)
         if num_tokens <= 0:
             retJson = {
-                "status":301
+                "status":301,
+                "tokens":remaining_tokens
             }
             return jsonify(retJson)
 
@@ -134,9 +141,42 @@ class Get(Resource):
 
         return jsonify(retJson)
 
+class Check(Resource):
+    def Post(self):
+        postedData = request.get_json()
+
+        # Read the database
+        username = postedData['username']
+        password = postedData['password']
+        remaining_tokens = postedData['tokens']
+        # sentence = postedData['sentence']
+
+        # Step 3 verify username and password match
+        correct_password = verifyPw(username,password)
+
+        if not correct_password:
+            retJson = {
+                "status":302
+            }
+            return jsonify(retJson)
+
+        # Get remaining tokens for the Users
+        remaining_tokens = users.find({
+            "Username":username
+        })[0]["Tokens"]
+
+        retJson = {
+            "status":200,
+            "remaining tokens":remaining_tokens
+        }
+
+        return jsonify(retJson)
+
+
 api.add_resource(Register, '/register')
 api.add_resource(Store, '/store')
 api.add_resource(Get, '/get')
+api.add_resource(Check, '/check')
 
 if __name__=="__main__":
     app.run(host='0.0.0.0')
