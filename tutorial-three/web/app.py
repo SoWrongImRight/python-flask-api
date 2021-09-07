@@ -132,7 +132,7 @@ class Get(Resource):
             "sentence":str(sentence)
         }
 
-        return jsonify(retJsons)
+        return jsonify(retJson)
 
 api.add_resource(Register, '/register')
 api.add_resource(Store, '/store')
