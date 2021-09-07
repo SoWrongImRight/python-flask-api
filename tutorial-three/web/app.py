@@ -17,6 +17,22 @@ client = MongoClient("mongodb://db:27017")
 db = client.SentencesDatabase
 users = db["Users"]
 
+def verifyPw(username, password):
+    hashed_pw = users.find({
+        "Username":username
+    })[0]["Password"]
+
+    if bcrypt.hashpw(password.encode('utf8'), hashed_pw) == hashed_pw:
+        return True
+    else:
+        return False
+
+def countTokens(username):
+    tokens = users.find({
+        "Username":username
+    })[0]["Tokens"]
+    return tokens
+
 class Register(Resource):
     def post(self):
         # Step one: get posted data by the users
@@ -27,7 +43,7 @@ class Register(Resource):
         password = postedData["password"]
 
         # Hash(password + salt) = stored password
-        hashed_pw = bcrypt.hashpw(password,bcrypt.gensalt())
+        hashed_pw = bcrypt.hashpw(password.encode('utf8'),bcrypt.gensalt())
 
         # Store usernaem and password into database
         users.insert({
@@ -41,7 +57,7 @@ class Register(Resource):
             "status":200,
             "msg":"You successfully signed up for the API"
         }
-        return jsonify(retJsons)
+        return jsonify(retJson)
 
 class Store(Resource):
     def post(self):
@@ -64,7 +80,7 @@ class Store(Resource):
 
         # Step 4 verify user has tokens
         num_tokens = countTokens(username)
-        if num_tokens => 0:
+        if num_tokens <= 0:
             retJson = {
                 "status":301
             }
@@ -81,8 +97,46 @@ class Store(Resource):
         }
         return jsonify(retJson)
 
+class Get(Resource):
+    def post(self):
+        postedData = request.get_json()
+
+        # Read the database
+        username = postedData['username']
+        password = postedData['password']
+        # sentence = postedData['sentence']
+
+        # Step 3 verify username and password match
+        correct_password = verifyPw(username,password)
+
+        if not correct_password:
+            retJson = {
+                "status":302
+            }
+            return jsonify(retJson)
+
+        # Step 4 verify user has tokens
+        num_tokens = countTokens(username)
+        if num_tokens <= 0:
+            retJson = {
+                "status":301
+            }
+            return jsonify(retJson)
+
+        sentence = users.find({
+            "Username": username
+        })[0]["Sentence"]
+
+        retJson = {
+            "status":200,
+            "sentence":str(sentence)
+        }
+
+        return jsonify(retJsons)
+
 api.add_resource(Register, '/register')
 api.add_resource(Store, '/store')
+api.add_resource(Get, '/get')
 
 if __name__=="__main__":
     app.run(host='0.0.0.0')
@@ -252,9 +306,10 @@ api.add_resource(Divide, '/divide')
 api.add_resource(Visit, '/hello')
 
 
-""" @app.route('/')
+
+@app.route('/')
 def hello_world():
   return 'Hello, World!'
- """
+"""
 if __name__=="__main__":
   app.run(host='0.0.0.0')
